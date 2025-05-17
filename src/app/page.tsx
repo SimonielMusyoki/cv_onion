@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -278,7 +279,7 @@ export default function CvOnionPage() {
                 <div>
                   <h4 className="font-semibold text-muted-foreground">Key Skills:</h4>
                   <div className="flex flex-wrap gap-1.5 mt-1">
-                    {cvAnalysis.skills.length > 0 ? cvAnalysis.skills.map((skill, i) => <Badge key={`${skill}-${i}`} variant="outline" className="bg-accent/10 border-accent/30 text-accent-foreground/80">{skill}</Badge>) : <p className="text-xs text-muted-foreground">No specific skills identified.</p>}
+                    {cvAnalysis.skills.length > 0 ? cvAnalysis.skills.map((skill, i) => <Badge key={`${skill}-${i}`} className="bg-purple-700 text-white hover:bg-purple-800">{skill}</Badge>) : <p className="text-xs text-muted-foreground">No specific skills identified.</p>}
                   </div>
                 </div>
                 <div>
