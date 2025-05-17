@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -60,19 +60,24 @@ export default function CvOnionPage() {
   const [jobAnalysis, setJobAnalysis] = useState<AnalyzeJobDescriptionOutput | null>(null);
   const [matchResult, setMatchResult] = useState<MatchCvToJobOutput | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
 
   const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
 
   const cvFileWatcher = watch("cvFile");
-  useState(() => {
+  useEffect(() => {
     if (cvFileWatcher && cvFileWatcher.length > 0) {
       setFileName(cvFileWatcher[0].name);
     } else {
       setFileName(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cvFileWatcher]);
 
 
@@ -87,22 +92,12 @@ export default function CvOnionPage() {
       const cvFile = data.cvFile[0];
       const cvDataUri = await readFileAsDataURL(cvFile);
       
-      // Attempt to read as text. This will be garbled for binary files like PDF/DOCX.
-      // The `matchCvToJob` flow expects text. This is a known limitation for non-TXT files.
-      // The `analyzeCv` flow using `cvDataUri` should handle PDF/DOCX correctly via the model.
       let cvTextContent = "";
       if (cvFile.type === "text/plain") {
         cvTextContent = await readFileAsText(cvFile);
       } else {
-        // For non-TXT files, we pass an empty string or placeholder to matchCvToJob,
-        // as client-side text extraction is unreliable for PDF/DOCX.
-        // The AI flow itself might be able to extract text if it were designed for cvDataUri for content.
-        // Since `matchCvToJob` strictly takes `cvContent: string`, we must acknowledge this.
-        // An alternative is to call a specific text extraction AI flow if available, or just show a warning.
-        // For now, let's pass what we can get (potentially garbled for non-TXT)
-        // and rely on the user understanding the .txt recommendation for best matching.
         try {
-          cvTextContent = await readFileAsText(cvFile); // This will be imperfect for PDF/DOCX
+          cvTextContent = await readFileAsText(cvFile); 
         } catch (textReadError) {
           console.warn("Could not read file as text:", textReadError);
           cvTextContent = "Could not extract text content from this file type for matching. Please use a .txt file for optimal matching analysis or copy/paste CV text.";
@@ -303,7 +298,7 @@ export default function CvOnionPage() {
                 <div>
                   <h4 className="font-semibold text-muted-foreground">Required Skills:</h4>
                    <div className="flex flex-wrap gap-1.5 mt-1">
-                    {jobAnalysis.requiredSkills.length > 0 ? jobAnalysis.requiredSkills.map((skill,i) => <Badge key={`${skill}-${i}`} variant="outline" className="bg-accent/10 border-accent/30 text-accent-foreground/80">{skill}</Badge>) : <p className="text-xs text-muted-foreground">No specific skills identified.</p>}
+                    {jobAnalysis.requiredSkills.length > 0 ? jobAnalysis.requiredSkills.map((skill,i) => <Badge key={`${skill}-${i}`} className="bg-purple-700 text-white hover:bg-purple-800">{skill}</Badge>) : <p className="text-xs text-muted-foreground">No specific skills identified.</p>}
                   </div>
                 </div>
                 <div>
@@ -330,8 +325,9 @@ export default function CvOnionPage() {
       )}
       </main>
       <footer className="text-center mt-12 py-6 border-t border-border">
-        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} CV Onion. AI-powered analysis for smarter career moves.</p>
+        <p className="text-xs text-muted-foreground">&copy; {currentYear !== null ? currentYear : '...'} CV Onion. AI-powered analysis for smarter career moves.</p>
       </footer>
     </div>
   );
 }
+
